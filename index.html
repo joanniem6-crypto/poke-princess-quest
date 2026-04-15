@@ -8,14 +8,20 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Luckiest+Guy&family=Titan+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
-        :root { --bg-main: #fdf2f8; --text-main: #4c1d95; --accent-pink: #ec4899; }
-        body { background-color: var(--bg-main); color: var(--text-main); font-family: 'Nunito', sans-serif; margin: 0; padding: 0; touch-action: manipulation; }
+        :root { --bg-main: #fdf2f8; --text-main: #4c1d95; --accent-pink: #ec4899; --accent-purple: #a855f7; }
+        body { background-color: var(--bg-main); color: var(--text-main); font-family: 'Nunito', sans-serif; touch-action: manipulation; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+        h1, h2, h3 { font-family: 'Bungee', cursive; letter-spacing: -0.02em; }
+        .funky-font { font-family: 'Luckiest Guy', cursive; letter-spacing: 0.05em; }
+        .titan { font-family: 'Titan One', cursive; }
         .bungee { font-family: 'Bungee', cursive; }
         .chunky-border { border: 5px solid var(--text-main); box-shadow: 6px 6px 0px var(--text-main); border-radius: 24px; background: white; }
-        .player-btn-active { background-color: white !important; color: var(--text-main) !important; transform: translateY(-5px); border: 3px solid var(--text-main) !important; box-shadow: 0px 5px 0px var(--text-main); }
-        .section-label { background: var(--accent-pink); color: white; padding: 4px 15px; border-radius: 20px; font-size: 14px; font-weight: 900; border: 3px solid var(--text-main); display: inline-block; margin-bottom: 15px; }
+        .player-btn-active { background-color: white !important; color: var(--text-main) !important; transform: translateY(-10px); border: 4px solid var(--text-main) !important; box-shadow: 0px 8px 0px var(--text-main); }
+        .task-title { font-family: 'Titan One', cursive; font-size: 1.2rem; line-height: 1.2; text-transform: uppercase; }
+        .pokeball-bg { background-image: radial-gradient(circle at 50% 50%, #fdf2f8 10%, transparent 10.2%), linear-gradient(180deg, var(--accent-pink) 48%, var(--text-main) 48%, var(--text-main) 52%, #fff 52%); }
+        .progress-bar { background: #eee; border: 3px solid var(--text-main); height: 20px; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; transition: width 0.5s ease-in-out; }
     </style>
 </head>
 <body>
@@ -23,99 +29,259 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
+        const Icon = ({ name, size = 24, className = "" }) => {
+            const paths = {
+                'LayoutDashboard': 'M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z',
+                'Check': 'M20 6L9 17l-5-5', 'Star': 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
+                'Trash2': 'M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2', 'Droplets': 'M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z',
+                'PawPrint': 'M12 14c2.761 0 5 2.239 5 5v1h-10v-1c0-2.761 2.239-5 5-5z M5 10c1.657 0 3 1.343 3 3s-1.343 3-3 3-3-1.343-3-3 1.343-3 3-3z M19 10c1.657 0 3 1.343 3 3s-1.343 3-3 3-3-1.343-3-3 1.343-3 3-3z',
+                'Shirt': 'M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.47a2 2 0 00.99 1.45L6 12v7a2 2 0 002 2h8a2 2 0 002-2v-7l2.15-1.39a2 2 0 00.99-1.45l.58-3.47a2 2 0 00-1.34-2.23z',
+                'Sparkles': 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
+                'Wind': 'M12.8 5.4a2.5 2.5 0 10-2.8 4M12 12a2.5 2.5 0 10-2.8 4M12 19.4a2.5 2.5 0 10-2.8 4', 'Sun': 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M12 8a4 4 0 100 8 4 4 0 000-8z',
+                'Moon': 'M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z', 'ChevronDown': 'M6 9l6 6 6-6', 'ChevronUp': 'M18 15l-6-6-6 6',
+                'Calendar': 'M19 4H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zM16 2v4M8 2v4M3 10h18', 'Bus': 'M19 17h2v2h-2v-2zm-2 0h-2v2h2v-2zM8 17H6v2h2v-2zm-2 0H4v2h2v-2zm16-4V7c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h1v2c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-2h6v2c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-2h1c1.1 0 2-.9 2-2v-4z',
+                'Music': 'M9 18V5l12-2v13M9 9l12-2M9 18a3 3 0 11-6 0 3 3 0 016 0z M21 16a3 3 0 11-6 0 3 3 0 016 0z', 'Mic': 'M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z M19 10v1a7 7 0 0 1-14 0v-1M12 18v4M8 22h8', 'Sunrise': 'M12 2v2 M12 22v-2 M5 5l1.5 1.5 M17.5 17.5L19 19 M2 12h2 M20 12h2 M5 19l1.5-1.5 M17.5 5.5L19 4', 'Zap': 'M13 2L3 14h9l-1 8 10-12h-9l1-8z', 'Grid': 'M3 3h18v18H3z M3 9h18 M3 15h18 M9 3v18 M15 3v18'
+            };
+            return (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <path d={paths[name] || paths['Star']} />
+                </svg>
+            );
+        };
+
         const familyAvatars = {
             dad: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJAAAACQCAMAAADAM4mIAAAAVFBMVEUAAAD///9ZWVlXV1daWlpVVVVYWFhUVFRRUVFMTExJSUlISEhGRkZERERDQ0NCQkJGRkZfX19iYmJlZWVkZGVcXFxSUlJPT09HR0dqampxcnJ5eXmjIqN8AAAAAXRSTlMAQObYZgAABEVJREFUeNrtl+1ymzAMhaG0i5zI4CT9/u9bM5wAAd5N78Y2Y/rX3Y5N4YfSsc+fM2fOnP9b17v3tL8OOn772mF7pOfD7u+DjrM/A+2P2z4GfS/6979G9H3T798i+t72+vYp8P/P4b4K95Kq3G6oYrf4m5RypqU4U0VzHlXlZkoV5XlU5fI8qorzPKoy4TwqE+5U5cJ5VCbcqcqEeVSVCPOoSphHZYI9qkywR5UJ9qgy4b1SJshTlfAOKhPcg1TivK4SZ88q4R0U3nFVid4p8Q56FbwH4D0D7xn8n0Bv74Pe96EreXvf+n57p4re3i/o27v09u7uR/X4bVCPH3+N6PHjr9H9O+7bO4S5fS5y+5zz9j6/vX3Y/O6L5HePst896u294G6X6bZf5m8X/XbR/O7L/O3K/O7S/M3b/E3/85eT756k5zP2PI+eT9vz6NfP88i/f55+9+jO/u7RnS5p+kO7XNLuN+u+t+7X7u3P6PAn9f+j/L+L/9X4X/X/Rflf9X5R+9f9T9S+4O654O4F41604N614C5V4S4F455V+b93P8H9uXqG4+HqGYbHw9XzDOPD5fMMe9Y/4X4c455jXGvHOfZ4M46x+4v54M44/H1u4vC3uXvCHve45/C/OXYb/5v7Cftn3O4v5X3C/uP7T+4v3H/G7p+x+/4Ztz849p4Y94x7p+GfcRjuejDcPcLwnvUDe34K+zP3p7A/c38u+1P55zD8E3ffpP/8M/f9Uf97Vp/+0v4V7Uv4K9pXtK+P6Oto37u7u7vP7PPDvH049/S5p6eT/f55unmepn/p/fPh/fPh95On/95v76On/357n35/+Phv9b+D//R/6X/pv+5/B//X+Ff9X9F/w4N7wQN3gXvCA3eBe9KDe8EDd4H764E/vT0Ffnvy9OfYff+Zfv90//fP2P3p/v90/8f4v/S/wX/Bvxt7/xt8/4O7f8LuH7v7J+zX4bVp6m//4rN/85O/P/76xW+m5xXyXNKeS+15qT1PhX9+Vf5z1v/M/uP9f0b/Y/evsftv7P8X9X+F/5b4b7S/pP3C4W/SfpL2G8fV6i/O6y/O1TfP/n95/idov3P4u7TfOe/uHPe+Xw5Xq08eX36L+9CffP4pD8O3T9P0X7mP6G/6P7Svyf8v4S/pb4i/pL/A/yR+SfqL9Ofu/uP9Wf55vLOf4Z+p/Y69P2Pv7v773SfsHe+ecH8z4Z7+15C9N+4Z974Z7xn3fofwzzuEtWvS7p/mF6u/Wf+N/b/C/574v9H+Ff1v8b/v/g8n+tO7Z/r//54ePv8v3T/p/4v+/+XfIfrtWfr9r9L/4P0X3M9P049P018P06/D++Xp/uYwPK75F4e7v8XhHle//P4Vv2n+H479b/b/N/P9H//+/9v44r8uP99X/M/U/xv7/0f/v/S/xW/w6wW/4L9pX/B//f/B79P/Df8Dvw=='
         };
 
         const INITIAL_TASKS = [
-            { id: 'd1', owner: 'Dad', title: 'Dishwasher Reset', points: 15, time: 'am' },
-            { id: 'd2', owner: 'Dad', title: 'Laundry Evolution', points: 20, time: 'pm' },
-            { id: 'm1', owner: 'Mom', title: 'Base Tidy', points: 25, time: 'am' },
-            { id: 'm2', owner: 'Mom', title: 'Kitchen Polish', points: 25, time: 'am' },
-            { id: 'p1', owner: 'Petunia', title: 'Royal Prep', points: 20, time: 'am' },
-            { id: 'p3', owner: 'Petunia', title: 'Scholar Quest', points: 20, time: 'pm' },
-            { id: 'g1', owner: 'Gretchen', title: 'Royal Prep', points: 20, time: 'am' },
-            { id: 'g5', owner: 'Gretchen', title: 'Peaches Whisperer', points: 20, time: 'pm' }
+            // TOM (DAD)
+            { id: 'd1', owner: 'Dad', title: 'Dishwasher Reset', icon: 'Sunrise', points: 15, time: 'am', reqs: ['Empty clean dishes', 'Clear morning sink'] },
+            { id: 'd2', owner: 'Dad', title: 'Laundry Evolution', icon: 'Shirt', points: 20, time: 'pm', reqs: ['Move wash to dryer', 'Start new load', 'Fold dried load'] },
+            { id: 'd3', owner: 'Dad', title: 'Mr. Peaches Logistics', icon: 'PawPrint', points: 15, time: 'pm', reqs: ['⭐️ STAR CHECK: Gretchen fed pellets!', 'Refill hay pile', 'Fresh lettuce'] },
+            { id: 'd4', owner: 'Dad', title: 'Eunice Water Station', icon: 'Droplets', points: 15, time: 'pm', reqs: ['⭐️ STAR CHECK: Petunia fed scoop!', 'Scrub bowl', 'Fresh water refill'] },
+            { id: 'd5', owner: 'Dad', title: 'Banish Waste Orbs', icon: 'Trash2', points: 20, time: 'pm', reqs: ['Kitchen bin tied', 'Bath bins emptied', 'Outside bin haul'] },
+            { id: 'd6', owner: 'Dad', title: 'Dishwasher Launch', icon: 'Moon', points: 15, time: 'pm', reqs: ['Load dinner dishes', 'Hit START'] },
+            { id: 'df1', owner: 'Dad', title: 'Weekly Garbage Curb Haul', icon: 'Calendar', points: 75, time: 'flex', reqs: ['Bins to curb', 'Lids closed'] },
+            // MOM
+            { id: 'm1', owner: 'Mom', title: 'Base Tidy', icon: 'Sun', points: 25, time: 'am', reqs: ['Pillows straight', 'Blankets folded'] },
+            { id: 'm2', owner: 'Mom', title: 'Kitchen Polish', icon: 'Sparkles', points: 25, time: 'am', reqs: ['Clear crumbs', 'Spray and wipe shiny'] },
+            { id: 'm3', owner: 'Mom', title: 'Bathroom Reset', icon: 'Droplets', points: 25, time: 'am', reqs: ['Rinse sink', 'Wipe mirror dry'] },
+            { id: 'm4', owner: 'Mom', title: 'Speed Sweep', icon: 'Wind', points: 25, time: 'am', reqs: ['Sweep Kitchen/Living/Entry'] },
+            { id: 'mf1', owner: 'Mom', title: 'Dust Defeat', icon: 'Wind', points: 50, time: 'flex', reqs: ['Dust TV stand & tables', 'Dust visible shelves'] },
+            { id: 'mf3', owner: 'Mom', title: 'Magic Vacuum', icon: 'Zap', points: 50, time: 'flex', reqs: ['Vacuum all rugs', 'Get into corners'] },
+            { id: 'mf4', owner: 'Mom', title: 'Floor Restore (Mop)', icon: 'Grid', points: 50, time: 'flex', reqs: ['Hot soapy floor mop'] },
+            // PETUNIA
+            { id: 'p1', owner: 'Petunia', title: 'Royal Prep', icon: 'Sunrise', points: 20, time: 'am', reqs: ['Clean clothes on', 'Hair brushed', 'Face washed'] },
+            { id: 'p2', owner: 'Petunia', title: 'Bus Mission', icon: 'Bus', points: 20, time: 'am', reqs: ['Backpack zipped', 'Shoes/Coat on', 'Out to bus!'] },
+            { id: 'p3', owner: 'Petunia', title: 'Scholar Quest (Homework)', icon: 'Sun', points: 20, time: 'pm', reqs: ['15 MINUTE FOCUS', 'Finish assignments'] },
+            { id: 'p4', owner: 'Petunia', title: 'Royal Performance (Music)', icon: 'Mic', points: 20, time: 'pm', reqs: ['10 MINUTE FOCUS', 'Singing & Piano practice'] },
+            { id: 'p5', owner: 'Petunia', title: 'Eunice Guard & Reset', icon: 'PawPrint', points: 20, time: 'pm', reqs: ['FEED: Give food scoop', 'Check water bowl'] },
+            { id: 'p6', owner: 'Petunia', title: 'Moon Bedtime Routine', icon: 'Moon', points: 20, time: 'pm', reqs: ['PJs on', 'Brush teeth', 'Room sweep'] },
+            // GRETCHEN
+            { id: 'g1', owner: 'Gretchen', title: 'Royal Prep', icon: 'Sunrise', points: 20, time: 'am', reqs: ['Clean clothes on', 'Hair brushed', 'Face washed'] },
+            { id: 'g2', owner: 'Gretchen', title: 'Bus Mission', icon: 'Bus', points: 20, time: 'am', reqs: ['Backpack ready', 'Shoes/Coat on', 'Out to bus!'] },
+            { id: 'g3', owner: 'Gretchen', title: 'Scholar Quest (Learning)', icon: 'Sun', points: 20, time: 'pm', reqs: ['15 MINUTE FOCUS', 'Read with Mom or Dad'] },
+            { id: 'g4', owner: 'Gretchen', title: 'Little Princess Play', icon: 'Music', points: 20, time: 'pm', reqs: ['10 MINUTE FOCUS', 'Practice your songs'] },
+            { id: 'g5', owner: 'Gretchen', title: 'Peaches Whisperer', icon: 'PawPrint', points: 20, time: 'pm', reqs: ['FEED: Give pellets', 'Morning PJs in hamper'] },
+            { id: 'g6', owner: 'Gretchen', title: 'Moon Bedtime Routine', icon: 'Moon', points: 20, time: 'pm', reqs: ['PJs on', 'Brush teeth', 'Room sweep'] }
         ];
 
         const PLAYERS = [
-            { name: 'Dad', color: '#3b82f6', id: 'dad' },
-            { name: 'Mom', color: '#eab308', id: 'mom' },
-            { name: 'Petunia', color: '#ec4899', id: 'petunia' },
-            { name: 'Gretchen', color: '#a855f7', id: 'gretchen' }
+            { name: 'Dad', role: 'Royal Guard', color: '#3b82f6', id: 'dad' },
+            { name: 'Mom', role: 'Fairy Queen', color: '#eab308', id: 'mom' },
+            { name: 'Petunia', role: 'Star Princess', color: '#ec4899', id: 'petunia' },
+            { name: 'Gretchen', role: 'Moon Princess', color: '#a855f7', id: 'gretchen' }
         ];
 
         function App() {
             const [activeTab, setActiveTab] = useState('ranks');
             const [scores, setScores] = useState({ 'Dad': 0, 'Mom': 0, 'Petunia': 0, 'Gretchen': 0 });
             const [tasks, setTasks] = useState(INITIAL_TASKS.map(t => ({ ...t, completed: false })));
+            const [expandedTaskId, setExpandedTaskId] = useState(null);
+            const [speakingId, setSpeakingId] = useState(null);
 
             useEffect(() => {
-                const saved = localStorage.getItem('poke_save_v1');
+                const saved = localStorage.getItem('pokeprincess_diamond_v2');
                 if (saved) {
                     const d = JSON.parse(saved);
-                    setScores(d.scores);
-                    setTasks(d.tasks);
+                    if (d.scores) setScores(d.scores);
+                    if (d.tasks) setTasks(prev => prev.map(t => {
+                        const savedTask = d.tasks.find(st => st.id === t.id);
+                        return savedTask ? { ...t, completed: savedTask.completed } : t;
+                    }));
                 }
             }, []);
 
-            const toggleTask = (id, owner, pts) => {
-                const newTasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
-                const isNowDone = newTasks.find(t => t.id === id).completed;
-                const newScores = { ...scores, [owner]: scores[owner] + (isNowDone ? pts : -pts) };
-                setTasks(newTasks);
-                setScores(newScores);
-                localStorage.setItem('poke_save_v1', JSON.stringify({ scores: newScores, tasks: newTasks }));
+            const saveData = (s, t) => {
+                localStorage.setItem('pokeprincess_diamond_v2', JSON.stringify({ scores: s, tasks: t }));
             };
 
+            const speakMagic = (task, owner) => {
+                if (!('speechSynthesis' in window)) return;
+                setSpeakingId(task.id);
+                window.speechSynthesis.cancel();
+
+                const greetings = ["Hello Princess!", "Greetings, Your Highness.", "Time for some magic!", "A royal quest awaits!", "Ready for a Disney adventure?"];
+                const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+                const textToSpeak = `${randomGreeting} ${owner}. Your magical mission is: ${task.title}. Details: ${task.reqs.join(". ")}`;
+
+                const msg = new SpeechSynthesisUtterance(textToSpeak);
+                const voices = window.speechSynthesis.getVoices();
+
+                const princessVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Google US English') || v.name.includes('Samantha') || v.name.includes('Female') || v.name.includes('Victoria')));
+                if (princessVoice) msg.voice = princessVoice;
+
+                msg.pitch = owner === 'Dad' ? 0.9 : 1.2; 
+                msg.rate = 0.95; 
+
+                msg.onend = () => setSpeakingId(null);
+                msg.onerror = () => setSpeakingId(null);
+                window.speechSynthesis.speak(msg);
+            };
+
+            const toggleTask = (id, owner, points, e) => {
+                e.stopPropagation();
+                const task = tasks.find(t => t.id === id);
+                if (!task) return;
+                const isCompleting = !task.completed;
+                const newScores = { ...scores, [owner]: Math.max(0, scores[owner] + (isCompleting ? points : -points)) };
+                const newTaskState = tasks.map(t => t.id === id ? { ...t, completed: isCompleting } : t);
+                setScores(newScores);
+                setTasks(newTaskState);
+                saveData(newScores, newTaskState);
+            };
+
+            const getTheme = (tab) => {
+                const p = PLAYERS.find(p => p.name === tab);
+                if (p) return { hex: p.color };
+                return { hex: '#ec4899' };
+            };
+            const theme = getTheme(activeTab);
+
             return (
-                <div className="min-h-screen pb-32">
-                    <header className="p-6 bg-pink-500 border-b-8 border-black text-white text-center">
-                        <h1 className="text-xl font-black bungee">POKÉ PRINCESS</h1>
+                <div className="min-h-screen pb-40 transition-colors duration-300">
+                    <header className="p-6 border-b-8 border-black flex justify-between items-center text-white transition-colors duration-300 shadow-lg" style={{backgroundColor: theme.hex}}>
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 pokeball-bg rounded-full border-2 border-black" style={{backgroundImage: 'radial-gradient(circle, white 20%, transparent 21%), linear-gradient(180deg, #ec4899 50%, black 50%, black 52%, white 52%)'}} />
+                            <h1 className="text-xl font-black uppercase tracking-tight bungee">POKÉ PRINCESS</h1>
+                        </div>
                     </header>
 
-                    <main className="p-4 max-w-md mx-auto">
-                        {activeTab === 'ranks' ? (
-                            <div className="space-y-4">
-                                <h2 className="text-center text-2xl bungee my-4">Royal Ranks</h2>
-                                {PLAYERS.map(p => (
-                                    <div key={p.name} onClick={() => setActiveTab(p.name)} className="chunky-border p-4 flex justify-between items-center cursor-pointer active:scale-95 transition-transform">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 rounded-full border-2 border-black overflow-hidden" style={{backgroundColor: p.color}}>
-                                                <img src={familyAvatars.dad} className="w-full h-full object-cover" />
+                    <main className="max-w-md mx-auto p-4">
+                        {activeTab === 'ranks' && (
+                            <div className="space-y-6 pt-4 animate-in slide-in-from-bottom-4 duration-300">
+                                <h2 className="text-center text-3xl funky-font text-pink-600 uppercase mt-4">Royal Ranks</h2>
+                                {PLAYERS.map(p => {
+                                    const progress = Math.min(100, scores[p.name]);
+                                    return (
+                                        <div key={p.name} onClick={() => setActiveTab(p.name)} className="chunky-border bg-white p-6 cursor-pointer active:scale-95 transition-transform">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-16 h-16 rounded-full border-4 border-black overflow-hidden bg-white" style={{borderColor: p.color}}>
+                                                        <img src={familyAvatars.dad} className="w-full h-full object-cover" alt={p.name} />
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-2xl font-black block leading-none uppercase">{p.name}</span>
+                                                        <span className="text-sm font-bold uppercase" style={{color: p.color}}>{p.role}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="text-4xl font-black block leading-none bungee" style={{color: p.color}}>{scores[p.name]}</span>
+                                                    <span className="text-[12px] font-bold opacity-40 uppercase">/ 100 EXP</span>
+                                                </div>
                                             </div>
-                                            <span className="text-lg font-black uppercase">{p.name}</span>
+                                            <div className="progress-bar"><div className="progress-fill" style={{ width: `${progress}%`, backgroundColor: p.color }}></div></div>
                                         </div>
-                                        <span className="text-2xl font-black bungee text-pink-500">{scores[p.name]}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div>
-                                <h2 className="text-2xl font-black mb-6 bungee">{activeTab}'s Quests</h2>
-                                {['am', 'pm'].map(time => (
-                                    <div key={time}>
-                                        <div className="section-label bungee">{time.toUpperCase()} MAGIC</div>
-                                        {tasks.filter(t => t.owner === activeTab && t.time === time).map(t => (
-                                            <div key={t.id} onClick={() => toggleTask(t.id, activeTab, t.points)} className={`chunky-border p-4 mb-4 flex justify-between items-center ${t.completed ? 'opacity-40 bg-gray-100' : ''}`}>
-                                                <span className="font-bold text-lg">{t.title}</span>
-                                                <span className="font-black text-pink-600">+{t.points}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
+
+                        {PLAYERS.map(player => activeTab === player.name && (
+                            <div key={player.name} className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h2 className="text-3xl font-black uppercase" style={{color: theme.hex}}>{player.name}'s Quests</h2>
+                                    <div className="text-right">
+                                        <span className="text-4xl font-black block leading-none bungee" style={{color: theme.hex}}>{scores[player.name]}</span>
+                                        <span className="text-[12px] font-black opacity-30 uppercase">Total EXP</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    {['am', 'pm', 'flex'].map(time => {
+                                        const filtered = tasks.filter(t => t.owner === player.name && t.time === time);
+                                        if (filtered.length === 0) return null;
+                                        return (
+                                            <div key={time}>
+                                                <div className="mt-8 mb-4 text-center">
+                                                    <div className="inline-block px-6 py-2 rounded-full border-4 border-black text-white font-black uppercase text-sm tracking-wider shadow-[0px_4px_0px_#000] bungee" style={{backgroundColor: theme.hex}}>
+                                                        {time === 'am' ? '☀️ AM MAGIC' : time === 'pm' ? '🌙 PM MAGIC' : '⭐ FLEX MISSIONS'}
+                                                    </div>
+                                                </div>
+                                                {filtered.map(t => {
+                                                    const isExpanded = expandedTaskId === t.id;
+                                                    return (
+                                                        <div key={t.id} className="chunky-border overflow-hidden mb-4 transition-colors duration-300" style={{borderColor: theme.hex, boxShadow: `6px 6px 0px ${theme.hex}`}}>
+                                                            <div className={`flex items-stretch transition-colors ${t.completed ? 'bg-gray-100 opacity-60' : 'bg-white'}`}>
+                                                                <div onClick={(e) => toggleTask(t.id, player.name, t.points, e)} className="p-4 border-r-4 border-slate-100 flex items-center justify-center bg-slate-50 cursor-pointer w-[80px]">
+                                                                    <div className={`w-12 h-12 rounded-2xl border-4 border-black flex items-center justify-center transition-all ${t.completed ? 'bg-green-500 text-white' : 'bg-white'}`} style={!t.completed ? {color: theme.hex} : {}}>
+                                                                        {t.completed ? <Icon name="Check" size={32} /> : <Icon name={t.icon} size={26} />}
+                                                                    </div>
+                                                                </div>
+                                                                <div onClick={() => setExpandedTaskId(isExpanded ? null : t.id)} className="flex-1 p-4 flex items-center justify-between cursor-pointer">
+                                                                    <div className="flex flex-col">
+                                                                        <span className="task-title" style={{color: 'var(--text-main)'}}>{t.title}</span>
+                                                                        {(player.name === 'Gretchen' || player.name === 'Petunia') && (
+                                                                            <div className="mt-2">
+                                                                                <button onClick={(e) => { e.stopPropagation(); speakMagic(t, player.name); }} className={`p-2 rounded-full bg-pink-100 text-pink-500 border-2 border-pink-300 shadow-sm active:bg-pink-200 transition-all ${speakingId === t.id ? 'animate-spin' : ''}`}>
+                                                                                    <Icon name="Sparkles" size={18}/>
+                                                                                </button>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="flex flex-col items-end">
+                                                                        <span className="text-xl font-black titan" style={{color: theme.hex}}>+{t.points}</span>
+                                                                        <div className="mt-2 text-slate-400">
+                                                                            {isExpanded ? <Icon name="ChevronUp" size={24} /> : <Icon name="ChevronDown" size={24} />}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            {isExpanded && t.reqs && (
+                                                                <div className="bg-slate-50 p-6 border-t-4 border-dashed border-slate-200">
+                                                                    <ul className="space-y-4">
+                                                                        {t.reqs.map((r, i) => (
+                                                                            <li key={i} className="flex items-start gap-3 text-purple-900 font-bold text-lg leading-snug">
+                                                                                <div className="w-3 h-3 rounded-full mt-1.5 shrink-0 border-2 border-black" style={{backgroundColor: theme.hex}} />
+                                                                                <span>{r}</span>
+                                                                            </li>
+                                                                        ))}
+                                                                    </ul>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <button onClick={() => { setTasks(INITIAL_TASKS.map(t => t.time === 'flex' ? t : {...t, completed: false})); window.scrollTo(0, 0); }} className="w-full mt-10 py-5 text-white border-4 border-black rounded-2xl font-black uppercase text-xl shadow-[0px_6px_0px_#000] active:translate-y-1 flex items-center justify-center gap-3 titan" style={{backgroundColor: theme.hex}}><Icon name="Sunrise" size={28}/> START NEW DAY</button>
+                            </div>
+                        ))}
                     </main>
 
-                    <nav className="fixed bottom-0 inset-x-0 bg-purple-900 border-t-8 border-black p-4 z-50">
-                        <div className="flex justify-between items-center max-w-md mx-auto">
-                            <button onClick={() => setActiveTab('ranks')} className={`p-2 rounded-xl text-white ${activeTab === 'ranks' ? 'player-btn-active' : ''}`}>
-                                <span className="text-xs font-black uppercase">Ranks</span>
+                    <nav className="fixed bottom-0 inset-x-0 bg-purple-900 border-t-8 border-black pt-2 pb-14 px-2 z-[90]">
+                        <div className="flex justify-between items-end gap-1 max-w-md mx-auto">
+                            <button onClick={() => setActiveTab('ranks')} className={`flex flex-col items-center p-3 rounded-2xl transition-all ${activeTab === 'ranks' ? 'player-btn-active' : 'text-white'}`}>
+                                <Icon name="LayoutDashboard" size={32}/>
+                                <span className="text-[12px] font-black mt-1 uppercase bungee">Ranks</span>
                             </button>
                             {PLAYERS.map(p => (
-                                <button key={p.name} onClick={() => setActiveTab(p.name)} className={`p-2 rounded-xl text-white ${activeTab === p.name ? 'player-btn-active' : ''}`}>
-                                    <span className="text-[10px] font-black uppercase">{p.name}</span>
+                                <button key={p.name} onClick={() => setActiveTab(p.name)} className={`flex flex-col items-center p-3 rounded-2xl transition-all ${activeTab === p.name ? 'player-btn-active' : 'text-white'}`}>
+                                    <div className="w-12 h-12 rounded-full border-2 border-black flex items-center justify-center font-black text-2xl shadow-sm overflow-hidden bg-white" style={{borderColor: p.color}}>
+                                        <img src={familyAvatars.dad} className="w-full h-full object-cover" alt={p.name} />
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase mt-1 bungee">{p.name}</span>
                                 </button>
                             ))}
                         </div>
@@ -124,8 +290,15 @@
             );
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        const renderApp = () => {
+            const container = document.getElementById('root');
+            const root = ReactDOM.createRoot(container);
+            root.render(<App />);
+        };
+
+        if (document.readyState === 'complete') { renderApp(); } 
+        else { window.addEventListener('load', renderApp); }
     </script>
 </body>
 </html>
+
