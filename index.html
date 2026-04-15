@@ -3,56 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Poké Princess</title>
+    <title>Poké Princess Diamond Master</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #fdf2f8; margin: 0; font-family: sans-serif; }
-        .chunky-card { 
-            border: 5px solid #4c1d95; 
-            box-shadow: 6px 6px 0px #4c1d95; 
-            border-radius: 20px; 
-            background: white;
-            padding: 20px;
-            margin: 20px;
-        }
+        :root { --bg-main: #fdf2f8; --text-main: #4c1d95; --accent-pink: #ec4899; }
+        body { background-color: var(--bg-main); color: var(--text-main); font-family: 'Nunito', sans-serif; margin: 0; padding: 0; touch-action: manipulation; }
+        .bungee { font-family: 'Bungee', cursive; }
+        .chunky-border { border: 5px solid var(--text-main); box-shadow: 6px 6px 0px var(--text-main); border-radius: 24px; background: white; }
+        .player-btn-active { background-color: white !important; color: var(--text-main) !important; transform: translateY(-5px); border: 3px solid var(--text-main) !important; box-shadow: 0px 5px 0px var(--text-main); }
+        .section-label { background: var(--accent-pink); color: white; padding: 4px 15px; border-radius: 20px; font-size: 14px; font-weight: 900; border: 3px solid var(--text-main); display: inline-block; margin-bottom: 15px; }
     </style>
 </head>
 <body>
     <div id="root"></div>
-
     <script type="text/babel">
-        // 2. Define the App
+        const { useState, useEffect } = React;
+
+        const familyAvatars = {
+            dad: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJAAAACQCAMAAADAM4mIAAAAVFBMVEUAAAD///9ZWVlXV1daWlpVVVVYWFhUVFRRUVFMTExJSUlISEhGRkZERERDQ0NCQkJGRkZfX19iYmJlZWVkZGVcXFxSUlJPT09HR0dqampxcnJ5eXmjIqN8AAAAAXRSTlMAQObYZgAABEVJREFUeNrtl+1ymzAMhaG0i5zI4CT9/u9bM5wAAd5N78Y2Y/rX3Y5N4YfSsc+fM2fOnP9b17v3tL8OOn772mF7pOfD7u+DjrM/A+2P2z4GfS/6979G9H3T798i+t72+vYp8P/P4b4K95Kq3G6oYrf4m5RypqU4U0VzHlXlZkoV5XlU5fI8qorzPKoy4TwqE+5U5cJ5VCbcqcqEeVSVCPOoSphHZYI9qkywR5UJ9qgy4b1SJshTlfAOKhPcg1TivK4SZ88q4R0U3nFVid4p8Q56FbwH4D0D7xn8n0Bv74Pe96EreXvf+n57p4re3i/o27v09u7uR/X4bVCPH3+N6PHjr9H9O+7bO4S5fS5y+5zz9j6/vX3Y/O6L5HePst896u294G6X6bZf5m8X/XbR/O7L/O3K/O7S/M3b/E3/85eT756k5zP2PI+eT9vz6NfP88i/f55+9+jO/u7RnS5p+kO7XNLuN+u+t+7X7u3P6PAn9f+j/L+L/9X4X/X/Rflf9X5R+9f9T9S+4O654O4F41604N614C5V4S4F455V+b93P8H9uXqG4+HqGYbHw9XzDOPD5fMMe9Y/4X4c455jXGvHOfZ4M46x+4v54M44/H1u4vC3uXvCHve45/C/OXYb/5v7Cftn3O4v5X3C/uP7T+4v3H/G7p+x+/4Ztz849p4Y94x7p+GfcRjuejDcPcLwnvUDe34K+zP3p7A/c38u+1P55zD8E3ffpP/8M/f9Uf97Vp/+0v4V7Uv4K9pXtK+P6Oto37u7u7vP7PPDvH049/S5p6eT/f55unmepn/p/fPh/fPh95On/95v76On/357n35/+Phv9b+D//R/6X/pv+5/B//X+Ff9X9F/w4N7wQN3gXvCA3eBe9KDe8EDd4H764E/vT0Ffnvy9OfYff+Zfv90//fP2P3p/v90/8f4v/S/wX/Bvxt7/xt8/4O7f8LuH7v7J+zX4bVp6m//4rN/85O/P/76xW+m5xXyXNKeS+15qT1PhX9+Vf5z1v/M/uP9f0b/Y/evsftv7P8X9X+F/5b4b7S/pP3C4W/SfpL2G8fV6i/O6y/O1TfP/n95/idov3P4u7TfOe/uHPe+Xw5Xq08eX36L+9CffP4pD8O3T9P0X7mP6G/6P7Svyf8v4S/pb4i/pL/A/yR+SfqL9Ofu/uP9Wf55vLOf4Z+p/Y69P2Pv7v773SfsHe+ecH8z4Z7+15C9N+4Z974Z7xn3fofwzzuEtWvS7p/mF6u/Wf+N/b/C/574v9H+Ff1v8b/v/g8n+tO7Z/r//54ePv8v3T/p/4v+/+XfIfrtWfr9r9L/4P0X3M9P049P018P06/D++Xp/uYwPK75F4e7v8XhHle//P4Vv2n+H479b/b/N/P9H//+/9v44r8uP99X/M/U/xv7/0f/v/S/xW/w6wW/4L9pX/B//f/B79P/Df8Dvw=='
+        };
+
+        const INITIAL_TASKS = [
+            { id: 'd1', owner: 'Dad', title: 'Dishwasher Reset', points: 15, time: 'am' },
+            { id: 'd2', owner: 'Dad', title: 'Laundry Evolution', points: 20, time: 'pm' },
+            { id: 'm1', owner: 'Mom', title: 'Base Tidy', points: 25, time: 'am' },
+            { id: 'm2', owner: 'Mom', title: 'Kitchen Polish', points: 25, time: 'am' },
+            { id: 'p1', owner: 'Petunia', title: 'Royal Prep', points: 20, time: 'am' },
+            { id: 'p3', owner: 'Petunia', title: 'Scholar Quest', points: 20, time: 'pm' },
+            { id: 'g1', owner: 'Gretchen', title: 'Royal Prep', points: 20, time: 'am' },
+            { id: 'g5', owner: 'Gretchen', title: 'Peaches Whisperer', points: 20, time: 'pm' }
+        ];
+
+        const PLAYERS = [
+            { name: 'Dad', color: '#3b82f6', id: 'dad' },
+            { name: 'Mom', color: '#eab308', id: 'mom' },
+            { name: 'Petunia', color: '#ec4899', id: 'petunia' },
+            { name: 'Gretchen', color: '#a855f7', id: 'gretchen' }
+        ];
+
         function App() {
+            const [activeTab, setActiveTab] = useState('ranks');
+            const [scores, setScores] = useState({ 'Dad': 0, 'Mom': 0, 'Petunia': 0, 'Gretchen': 0 });
+            const [tasks, setTasks] = useState(INITIAL_TASKS.map(t => ({ ...t, completed: false })));
+
+            useEffect(() => {
+                const saved = localStorage.getItem('poke_save_v1');
+                if (saved) {
+                    const d = JSON.parse(saved);
+                    setScores(d.scores);
+                    setTasks(d.tasks);
+                }
+            }, []);
+
+            const toggleTask = (id, owner, pts) => {
+                const newTasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+                const isNowDone = newTasks.find(t => t.id === id).completed;
+                const newScores = { ...scores, [owner]: scores[owner] + (isNowDone ? pts : -pts) };
+                setTasks(newTasks);
+                setScores(newScores);
+                localStorage.setItem('poke_save_v1', JSON.stringify({ scores: newScores, tasks: newTasks }));
+            };
+
             return (
-                <div style={{ textAlign: 'center', paddingTop: '50px' }}>
-                    <div className="chunky-card">
-                        <h1 style={{ color: '#ec4899', fontSize: '30px' }}>✨ POKÉ PRINCESS ✨</h1>
-                        <p style={{ fontWeight: 'bold' }}>If you see this, the code is FIXED!</p>
-                        <hr style={{ margin: '20px 0', border: '1px solid #eee' }} />
-                        <div style={{ fontSize: '20px' }}>
-                            <p>👸 Petunia: 0 EXP</p>
-                            <p>🌙 Gretchen: 0 EXP</p>
+                <div className="min-h-screen pb-32">
+                    <header className="p-6 bg-pink-500 border-b-8 border-black text-white text-center">
+                        <h1 className="text-xl font-black bungee">POKÉ PRINCESS</h1>
+                    </header>
+
+                    <main className="p-4 max-w-md mx-auto">
+                        {activeTab === 'ranks' ? (
+                            <div className="space-y-4">
+                                <h2 className="text-center text-2xl bungee my-4">Royal Ranks</h2>
+                                {PLAYERS.map(p => (
+                                    <div key={p.name} onClick={() => setActiveTab(p.name)} className="chunky-border p-4 flex justify-between items-center cursor-pointer active:scale-95 transition-transform">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-12 h-12 rounded-full border-2 border-black overflow-hidden" style={{backgroundColor: p.color}}>
+                                                <img src={familyAvatars.dad} className="w-full h-full object-cover" />
+                                            </div>
+                                            <span className="text-lg font-black uppercase">{p.name}</span>
+                                        </div>
+                                        <span className="text-2xl font-black bungee text-pink-500">{scores[p.name]}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div>
+                                <h2 className="text-2xl font-black mb-6 bungee">{activeTab}'s Quests</h2>
+                                {['am', 'pm'].map(time => (
+                                    <div key={time}>
+                                        <div className="section-label bungee">{time.toUpperCase()} MAGIC</div>
+                                        {tasks.filter(t => t.owner === activeTab && t.time === time).map(t => (
+                                            <div key={t.id} onClick={() => toggleTask(t.id, activeTab, t.points)} className={`chunky-border p-4 mb-4 flex justify-between items-center ${t.completed ? 'opacity-40 bg-gray-100' : ''}`}>
+                                                <span className="font-bold text-lg">{t.title}</span>
+                                                <span className="font-black text-pink-600">+{t.points}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </main>
+
+                    <nav className="fixed bottom-0 inset-x-0 bg-purple-900 border-t-8 border-black p-4 z-50">
+                        <div className="flex justify-between items-center max-w-md mx-auto">
+                            <button onClick={() => setActiveTab('ranks')} className={`p-2 rounded-xl text-white ${activeTab === 'ranks' ? 'player-btn-active' : ''}`}>
+                                <span className="text-xs font-black uppercase">Ranks</span>
+                            </button>
+                            {PLAYERS.map(p => (
+                                <button key={p.name} onClick={() => setActiveTab(p.name)} className={`p-2 rounded-xl text-white ${activeTab === p.name ? 'player-btn-active' : ''}`}>
+                                    <span className="text-[10px] font-black uppercase">{p.name}</span>
+                                </button>
+                            ))}
                         </div>
-                    </div>
+                    </nav>
                 </div>
             );
         }
 
-        // 3. This part tells the browser to WAIT until everything is ready
-        const renderApp = () => {
-            const container = document.getElementById('root');
-            const root = ReactDOM.createRoot(container);
-            root.render(<App />);
-        };
-
-        if (document.readyState === 'complete') {
-            renderApp();
-        } else {
-            window.addEventListener('load', renderApp);
-        }
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
